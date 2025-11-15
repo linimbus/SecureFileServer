@@ -1,21 +1,27 @@
-FROM golang:1.23-alpine AS builder
+FROM ubuntu:25.04 AS builder
 
-RUN apk add --no-cache gcc musl-dev
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libsqlite3-dev \
+    pkg-config \
+    golang \
+    ca-certificates
 
 WORKDIR /app
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o SecureFileServer .
+RUN CGO_ENABLED=1 GOOS=linux \
+    go build -a -installsuffix cgo -o SecureFileServer .
 
-FROM alpine:latest
+FROM ubuntu:25.04
 
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /root/
+WORKDIR /app/
 
 COPY --from=builder /app/SecureFileServer .
 
+RUN chmod +x /app/SecureFileServer
+
 EXPOSE 8080
 
-CMD ["./SecureFileServer"]
+ENTRYPOINT ["/app/SecureFileServer"]
