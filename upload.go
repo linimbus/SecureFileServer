@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/astaxie/beego"
@@ -11,6 +12,19 @@ import (
 
 type UploadController struct {
 	beego.Controller
+}
+
+func (c *UploadController) ValidFileType(filename string) bool {
+	extensions := map[string]bool{
+		".txt": true, ".pdf": true, ".doc": true, ".docx": true,
+		".jpg": true, ".jpeg": true, ".png": true, ".gif": true,
+		".zip": true, ".rar": true, ".7z": true, ".tar": true,
+		".gz": true, ".mp3": true, ".mp4": true, ".avi": true,
+		".mov": true, ".wmv": true, ".xlsx": true, ".xls": true,
+		".ppt": true, ".pptx": true, ".csv": true, ".rtf": true,
+	}
+	ext := strings.ToLower(filepath.Ext(filename))
+	return extensions[ext]
 }
 
 func (c *UploadController) UploadFile() {
@@ -26,6 +40,17 @@ func (c *UploadController) UploadFile() {
 		return
 	}
 	defer file.Close()
+
+	if c.ValidFileType(header.Filename) {
+		c.Data["json"] = map[string]interface{}{
+			"code": 400,
+			"msg":  "Invalid file type",
+		}
+		c.ServeJSON()
+
+		logs.Warn("Invalid file type: %s", header.Filename)
+		return
+	}
 
 	if header.Size > AppConf.MaxFileSize {
 		c.Data["json"] = map[string]interface{}{

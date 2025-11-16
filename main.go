@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"os"
+	"strings"
 
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var VERSION = "1.0.0"
+var VERSION = "1.1.0"
 
 type Config struct {
 	Help        bool
@@ -19,6 +20,8 @@ type Config struct {
 	MaxFileSize int64
 	FileExpiry  int64
 	DBPath      string
+	TokenSecret string
+	TokenEnable bool
 }
 
 var AppConf Config
@@ -33,6 +36,8 @@ func init() {
 	flag.Int64Var(&AppConf.FileExpiry, "file-expiry", 24, "File expiry duration in hours")
 	flag.StringVar(&AppConf.DBPath, "db-path", "./database.db", "Database file path")
 	flag.BoolVar(&AppConf.Help, "help", false, "Show help message")
+	flag.StringVar(&AppConf.TokenSecret, "token-secret", "", "Secret key for token authentication")
+	flag.BoolVar(&AppConf.TokenEnable, "token-enable", false, "Enable token authentication")
 }
 
 func main() {
@@ -52,6 +57,12 @@ func main() {
 		logs.Error("File expiry must be greater than 0")
 		os.Exit(1)
 	}
+
+	if AppConf.TokenEnable && AppConf.TokenSecret == "" {
+		logs.Error("Token secret must be provided when token authentication is enabled")
+		os.Exit(1)
+	}
+	AppConf.TokenSecret = strings.ToLower(AppConf.TokenSecret)
 
 	err := InitDB()
 	if err != nil {
@@ -74,6 +85,8 @@ func main() {
 	beego.BConfig.Listen.HTTPAddr = AppConf.HTTPHost
 	beego.BConfig.Listen.HTTPPort = AppConf.HTTPPort
 	beego.BConfig.Listen.EnableHTTP = true
+
+	beego.InsertFilter("/*", beego.BeforeRouter, TokenAuthFilter)
 
 	beego.Router("/upload", &UploadController{}, "post:UploadFile")
 	beego.Router("/download/:uuid", &DownloadController{}, "get:DownloadFile")
