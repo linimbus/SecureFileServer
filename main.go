@@ -10,7 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var VERSION = "1.1.0"
+var VERSION = "1.1.1"
 
 type Config struct {
 	Help        bool
@@ -58,11 +58,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	if AppConf.TokenEnable && AppConf.TokenSecret == "" {
-		logs.Error("Token secret must be provided when token authentication is enabled")
-		os.Exit(1)
+	if AppConf.TokenEnable {
+		if AppConf.TokenSecret == "" {
+			logs.Error("Token secret must be provided when token authentication is enabled")
+			os.Exit(1)
+		}
+		AppConf.TokenSecret = strings.ToLower(AppConf.TokenSecret)
+		logs.Info("Token authentication is enabled")
 	}
-	AppConf.TokenSecret = strings.ToLower(AppConf.TokenSecret)
 
 	err := InitDB()
 	if err != nil {

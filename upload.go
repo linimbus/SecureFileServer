@@ -41,7 +41,7 @@ func (c *UploadController) UploadFile() {
 	}
 	defer file.Close()
 
-	if c.ValidFileType(header.Filename) {
+	if !c.ValidFileType(header.Filename) {
 		c.Data["json"] = map[string]interface{}{
 			"code": 400,
 			"msg":  "Invalid file type",

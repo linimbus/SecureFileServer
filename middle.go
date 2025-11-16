@@ -13,9 +13,8 @@ func unauthorizedResponse(ctx *context.Context, message string) {
 	ctx.Output.Header("Content-Type", "application/json")
 
 	response := map[string]interface{}{
-		"error":   "Unauthorized",
-		"message": message,
-		"code":    401,
+		"code": 401,
+		"msg":  message,
 	}
 	jsonData, _ := json.Marshal(response)
 	ctx.Output.Body(jsonData)
