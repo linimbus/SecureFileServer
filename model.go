@@ -30,7 +30,7 @@ func InitDB() error {
 		logs.Error("init db failed, %s", err.Error())
 		return err
 	}
-	err = orm.RegisterDataBase("default", "sqlite3", AppConf.DBPath)
+	err = orm.RegisterDataBase("default", "sqlite3", AppConf.DataBasePath)
 	if err != nil {
 		logs.Error("init db failed, %s", err.Error())
 		return err

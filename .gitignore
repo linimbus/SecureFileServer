@@ -33,3 +33,4 @@ go.work.sum
 SecureFileServer
 *.db
 uploads/
+runlog/
