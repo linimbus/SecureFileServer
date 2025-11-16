@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/astaxie/beego/context"
+	"github.com/astaxie/beego/logs"
 )
 
 func unauthorizedResponse(ctx *context.Context, message string) {
@@ -19,6 +20,8 @@ func unauthorizedResponse(ctx *context.Context, message string) {
 	jsonData, _ := json.Marshal(response)
 	ctx.Output.Body(jsonData)
 	ctx.ResponseWriter.WriteHeader(401)
+
+	logs.Warn("Unauthorized access attempt: %s", message)
 }
 
 func TokenAuthFilter(ctx *context.Context) {
